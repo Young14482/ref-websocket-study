@@ -21,9 +21,27 @@
 </ul>
 
 <script>
-    setTimeout(() => {
-        location.reload();
-    }, 2000)
+    setInterval(() => {
+        chatList();
+    }, 2000);
+
+    async function chatList() {
+        let response = await fetch("/api");
+        let reponseBody = await response.json();
+
+        let site = document.querySelector("#chat-box");
+        site.innerHTML = "";
+
+        chatBox(reponseBody, site); // 받은 리스트를 반복해서 추가하는 함수
+    }
+
+    function chatBox(reponseBody, site) {
+        reponseBody.forEach(chat => {
+            let dom = document.createElement("li");
+            dom.innerHTML = chat.msg;
+            site.append(dom);
+        });
+    }
 </script>
 
 </body>
