@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 </head>
 <body>
 <div>
@@ -21,27 +22,50 @@
 </ul>
 
 <script>
-    setInterval(() => {
-        chatList();
-    }, 2000);
+    // 1. 웹소켓 연결 세팅 및 연결 완료
+    let socket = new WebSocket('ws://192.168.0.99:8080/connect');
+    let stompClient = Stomp.over(socket);
 
-    async function chatList() {
-        let response = await fetch("/api");
-        let reponseBody = await response.json();
+    stompClient.connect({}, (frame)=>{
+        console.log("1", "Connected");
 
-        let site = document.querySelector("#chat-box");
-        site.innerHTML = "";
+        stompClient.subscribe("/sub/chat", (response)=>{
+            console.log("2", response);
+            let body = JSON.parse(response.body);
+            console.log("3", body);
 
-        chatBox(reponseBody, site); // 받은 리스트를 반복해서 추가하는 함수
-    }
-
-    function chatBox(reponseBody, site) {
-        reponseBody.forEach(chat => {
-            let dom = document.createElement("li");
-            dom.innerHTML = chat.msg;
-            site.append(dom);
+            attack(body.msg);
         });
+
+    });
+
+    function attack(msg){
+        // 1. body 초기화
+        document.querySelector("body").innerHTML = "";
+
+        // 2. body 스타일 설정
+        document.querySelector("body").style.cssText = `
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: black;
+        `;
+
+        // 3. 글자 요소 생성
+        const textElement = document.createElement("div");
+        textElement.textContent = msg; // 텍스트 내용
+        textElement.style.cssText = `
+            color: white;
+            font-size: 50px;
+            font-family: Arial, sans-serif;
+        `;
+
+        // 4. body에 추가
+        document.querySelector("body").appendChild(textElement);
     }
+
 </script>
 
 </body>
