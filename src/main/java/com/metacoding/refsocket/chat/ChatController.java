@@ -29,24 +29,27 @@ public class ChatController {
         return "save-form";
     }
 
-    @PostMapping("/chat")
-    public String save(String msg) {
-        chatService.save(msg);
-        return "redirect:/";
-    }
-
     @GetMapping("/api")
     public ResponseEntity<?> api() {
         List<Chat> models = chatService.findAll();
         return ResponseEntity.ok(models);
     }
+    
+    // 작성한 채팅 뿌리기 
+    @PostMapping("/chat")
+    public String save(String msg) {
+        Chat chat = chatService.save(msg);
+        // 객체로 던져도 json으로 날아감
+        sms.convertAndSend("/sub/chat", chat);
+        return "redirect:/";
+    }
 
     // /pub/room >> 설정파일에 prefix 설정해둬서 /pub 생략가능
-    @MessageMapping("/room")
-    public void pubTest1(String number) {
-        System.out.println("요청됨" + number);
-        sms.convertAndSend("/sub/"+number,"Hello World!" + number);
-    }
+//    @MessageMapping("/room")
+//    public void pubTest1(String number) {
+//        System.out.println("요청됨" + number);
+//        sms.convertAndSend("/sub/"+number,"Hello World!" + number);
+//    }
 
 //    @SendTo("/sub")
 //    @MessageMapping("/room")
