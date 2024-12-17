@@ -2,6 +2,9 @@ package com.metacoding.refsocket.chat;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +16,7 @@ import java.util.List;
 @Controller
 public class ChatController {
     private final ChatService chatService;
+    private final SimpMessageSendingOperations sms;
 
     @GetMapping("/")
     public String index(Model model) {
@@ -26,7 +30,7 @@ public class ChatController {
     }
 
     @PostMapping("/chat")
-    public String chast(String msg) {
+    public String save(String msg) {
         chatService.save(msg);
         return "redirect:/";
     }
@@ -36,4 +40,18 @@ public class ChatController {
         List<Chat> models = chatService.findAll();
         return ResponseEntity.ok(models);
     }
+
+    // /pub/room >> 설정파일에 prefix 설정해둬서 /pub 생략가능
+    @MessageMapping("/room")
+    public void pubTest1(String number) {
+        System.out.println("요청됨" + number);
+        sms.convertAndSend("/sub/"+number,"Hello World!" + number);
+    }
+
+//    @SendTo("/sub")
+//    @MessageMapping("/room")
+//    public String pubTest2(String number) {
+//        System.out.println("요청됨" + number);
+//        return "Hello World!";
+//    }
 }

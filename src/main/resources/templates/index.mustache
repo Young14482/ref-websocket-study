@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 </head>
 <body>
 <div>
@@ -13,6 +14,8 @@
     </ul>
 </div>
 <h1>채팅 목록</h1>
+<button onclick="send1()">메시지 전송(pub)</button>
+<button onclick="send5()">메시지 전송(pub)</button>
 <hr>
 <ul id="chat-box">
     {{#models}}
@@ -21,27 +24,34 @@
 </ul>
 
 <script>
-    setInterval(() => {
-        chatList();
-    }, 2000);
+    // 1. 웹소켓 연결 세팅 완료
+    let socket = new WebSocket('ws://localhost:8080/connect');
+    let stompClient = Stomp.over(socket);
 
-    async function chatList() {
-        let response = await fetch("/api");
-        let reponseBody = await response.json();
+    stompClient.connect({}, (frame) => {
+        console.log("1.Connected");
 
-        let site = document.querySelector("#chat-box");
-        site.innerHTML = "";
-
-        chatBox(reponseBody, site); // 받은 리스트를 반복해서 추가하는 함수
-    }
-
-    function chatBox(reponseBody, site) {
-        reponseBody.forEach(chat => {
-            let dom = document.createElement("li");
-            dom.innerHTML = chat.msg;
-            site.append(dom);
+        // 2. 구독하기 /sub -> /pub/room 이런식으로 해야 발동
+        stompClient.subscribe("/sub/1", (response) => {
+            console.log("2. Sub/1");
+            console.log(response);
         });
+
+        stompClient.subscribe("/sub/5", (response) => {
+            console.log("Sub/5");
+            console.log(response);
+        });
+    });
+
+    function send1() {
+        // {} >> 헤더부분
+        stompClient.send("/pub/room", {}, "1");
     }
+
+    function send5() {
+        stompClient.send("/pub/room", {}, "5");
+    }
+
 </script>
 
 </body>
